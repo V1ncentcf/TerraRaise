@@ -31,7 +31,6 @@ public class TerraRaiseListener implements Listener {
     }
 
     final Map<Player, Long> lastSneakTime = new HashMap<>();
-    long DOUBLE_TAP_THRESHOLD = ConfigManager.getConfig().getLong("ExtraAbilities.Vincentcf.TerraRaise.DoubleTapShiftDelay");
 
     @EventHandler
     public void whileSneaking(PlayerToggleSneakEvent event) {
@@ -49,8 +48,9 @@ public class TerraRaiseListener implements Listener {
 
             Long currentTime = System.currentTimeMillis();
             Long lastTime = lastSneakTime.get(player);
+            long doubleTapThreshold = ConfigManager.getConfig().getLong("ExtraAbilities.Vincentcf.TerraRaise.DoubleTapShiftDelay");
 
-            if (lastTime != null && (currentTime - lastTime <= DOUBLE_TAP_THRESHOLD)) {
+            if (lastTime != null && (currentTime - lastTime <= doubleTapThreshold)) {
                 // Detected double-tap
                 CoreAbility.getAbility(player, TerraRaise.class).setRaiseCol(true);
                 return;

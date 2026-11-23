@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
@@ -45,6 +46,7 @@ public class TerraRaise extends EarthAbility implements AddonAbility {
     int totalSourcedBlocks = 0;
     Block prevBlock;
     private int particleAmount;
+    private static Listener listener;
 
     public TerraRaise(Player player) {
         super(player);
@@ -167,7 +169,7 @@ public class TerraRaise extends EarthAbility implements AddonAbility {
                 delayedTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() { // Delays so blocks aren't added when you double tap
                     @Override
                     public void run() {
-                        if (!shouldNotAddBlocks && sourcedBlocksMap.size() < maxSources) {
+                        if (!isRemoved() && !shouldNotAddBlocks && sourcedBlocksMap != null && sourcedBlocksMap.size() < maxSources) {
                             sourcedBlocksMap.put(block, hitBlockFaceDir);
                             remMoves();
                         }
@@ -277,7 +279,11 @@ public class TerraRaise extends EarthAbility implements AddonAbility {
         ConfigManager.getConfig().addDefault("ExtraAbilities.Vincentcf.TerraRaise.AvatarState.Speed", 20);
         ConfigManager.getConfig().addDefault("ExtraAbilities.Vincentcf.TerraRaise.AvatarState.MaxSources", 50);
 
-        Listener listener = new TerraRaiseListener();
+        if (listener != null) {
+            HandlerList.unregisterAll(listener);
+            listener = null;
+        }
+        listener = new TerraRaiseListener();
         plugin.getServer().getPluginManager().registerEvents(listener, plugin);
         ConfigManager.defaultConfig.save();
 
@@ -285,7 +291,25 @@ public class TerraRaise extends EarthAbility implements AddonAbility {
     }
 
     @Override
+    public void remove() {
+        super.remove();
+        if (delayedTask != null) {
+            delayedTask.cancel();
+            delayedTask = null;
+        }
+        shouldNotAddBlocks = true;
+    }
+
+    @Override
     public void stop() {
+        if (listener != null) {
+            HandlerList.unregisterAll(listener);
+            listener = null;
+        }
+        if (delayedTask != null) {
+            delayedTask.cancel();
+            delayedTask = null;
+        }
         if (remainingMovesMap != null) remainingMovesMap.clear();
         if (updatedBlocksMap != null) updatedBlocksMap.clear();
         if (sourcedBlocksMap != null) sourcedBlocksMap.clear();
