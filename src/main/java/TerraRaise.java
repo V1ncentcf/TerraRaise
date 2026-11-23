@@ -51,7 +51,7 @@ public class TerraRaise extends EarthAbility implements AddonAbility {
     public TerraRaise(Player player) {
         super(player);
 
-        if (!bPlayer.canBendIgnoreBinds(this)) return;
+        if (bPlayer == null || !bPlayer.canBendIgnoreBinds(this)) return;
 
         sourcedBlocksMap = new HashMap<>();
 
@@ -81,9 +81,9 @@ public class TerraRaise extends EarthAbility implements AddonAbility {
     @Override
     public void progress() {
 
-        if (!bPlayer.canBend(this)) {
+        if (bPlayer == null || !bPlayer.canBend(this)) {
             remove();
-            if (raiseCol) {
+            if (raiseCol && bPlayer != null) {
                 if (dynamicCooldown) setDynamicCooldown();
                 bPlayer.addCooldown(this);
             }
@@ -163,7 +163,7 @@ public class TerraRaise extends EarthAbility implements AddonAbility {
             tarBoundingBox = block.getBoundingBox();
             RayTraceResult intersection = tarBoundingBox.rayTrace(player.getEyeLocation().toVector(), player.getEyeLocation().getDirection(), range);
 
-            if (intersection != null) {
+            if (intersection != null && intersection.getHitBlockFace() != null) {
                 Vector hitBlockFaceDir = intersection.getHitBlockFace().getDirection();
 
                 delayedTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() { // Delays so blocks aren't added when you double tap
